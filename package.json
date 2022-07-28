@@ -1,0 +1,50 @@
+{
+  "name": "cucumber-cypress-rerun",
+  "version": "0.0.0-development",
+  "description": "A plugin to run cypress cucumber scenarios multiple times",
+  "bin": {
+    "cucumber-cypress-repeat": "index.js"
+  },
+  "files": [
+    "index.js"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "demo:twice": "node . run",
+    "demo:failed-only": "node . run --failed-only",
+    "semantic-release": "semantic-release"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/manv6/cucumber-cypress-rerun.git"
+  },
+  "keywords": [
+    "cypress",
+    "cli",
+    "cucumber"
+  ],
+  "author": "Manolis Vlastos <evlastos@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/manv6/cucumber-cypress-rerun/issues"
+  },
+  "homepage": "https://github.com/manv6/cucumber-cypress-rerun#readme",
+  "devDependencies": {
+    "@types/node": "18.6.2",
+    "cypress": "10.3.1",
+    "prettier": "2.7.1",
+    "semantic-release": "^19.0.3"
+  },
+  "dependencies": {
+    "arg": "5.0.2",
+    "bluebird": "3.7.2",
+    "debug": "4.3.4",
+    "dotenv": "16.0.1"
+  },
+  "peerDependencies": {
+    "cypress": ">=10.3.0"
+  },
+  "release": {
+    "branches": "main"
+  }
+}
