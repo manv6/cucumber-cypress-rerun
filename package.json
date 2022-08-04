@@ -1,6 +1,6 @@
 {
   "name": "cucumber-cypress-rerun",
-  "version": "0.0.0-development",
+  "version": "0.0.1-development",
   "description": "A plugin to run cypress cucumber scenarios multiple times",
   "bin": {
     "cucumber-cypress-repeat": "index.js"
@@ -21,7 +21,8 @@
   "keywords": [
     "cypress",
     "cli",
-    "cucumber"
+    "cucumber",
+    "rerun"
   ],
   "author": "Manolis Vlastos <evlastos@gmail.com>",
   "license": "MIT",

@@ -149,7 +149,7 @@ parseArguments()
 
           if (failedSpecs.length) {
             console.log('%s failed specs', name);
-            console.log(tempfailedSpecs);
+            debug('failed specs %o ', tempfailedSpecs);
             allRunOptions[k + 1].env = allRunOptions[k + 1].env.replace(tags, '@failed');
             allRunOptions[k + 1].spec = failedSpecs;
           } else {
