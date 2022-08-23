@@ -50,7 +50,7 @@ const parseFeatureFiles = async (tempfailedSpecs, path) => {
     if (err) return console.log(err)
     files.forEach((file) => {
       let result
-      fs.readFile(path + '/'+ file, 'utf8', (err, data) => {
+      fs.readFile(path + '/' + file, 'utf8', (err, data) => {
         if (err) return console.log(err)
         result = data
         tempfailedSpecs.forEach((test) => {
@@ -61,7 +61,7 @@ const parseFeatureFiles = async (tempfailedSpecs, path) => {
             `\t@failed \n\tScenario: ${test[1]}`,
           )
         })
-        fs.writeFile(path + file, result, 'utf8', (err) => {
+        fs.writeFile(path + '/' +  file, result, 'utf8', (err) => {
           if (err) return console.log(err)
           debug('Scenario replaced')
         })
