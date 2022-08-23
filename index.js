@@ -1,14 +1,6 @@
 #!/usr/bin/env node
-/* eslint-disable no-shadow */
-/* eslint-disable no-console */
-/* eslint-disable consistent-return */
-/* eslint-disable no-param-reassign */
-/* eslint-disable eqeqeq */
-/* eslint-disable no-unused-vars */
-/* eslint-disable no-return-await */
 
 // @ts-nocheck
-
 const debug = require('debug')('cucumber-cypress-rerun')
 const fs = require('fs')
 
@@ -19,31 +11,23 @@ const cypress = require('cypress')
 const arg = require('arg')
 const Bluebird = require('bluebird')
 
-// if there is an .env file, lots it and add to process.env
+// if there is an .env file, loads it and add to process.env
 require('dotenv').config()
 
 debug('process argv %o', process.argv)
 const args = arg(
   {
-    '-n': Number,
     '--feature-files': String
   },
   { permissive: true },
 )
 const name = 'cucumber-cypress-rerun:'
-const repeatNtimes =  1
+const repeatNtimes =  2
 const featureFilesPath = '--feature-files' in args ? args['--feature-files'] : 'cypress/e2e/'
-// const untilPasses = '--until-passes' in args ? args['--until-passes'] : false
-// const rerunFailedOnly =
-//   '--rerun-failed-only' in args ? args['--rerun-failed-only'] : false
 
 console.log('%s will repeat Cypress command %d time(s)', name, repeatNtimes)
+console.log('%s will look for feature files in %s folder', name, featureFilesPath)
 
-// if (untilPasses)
-//   console.log('%s but only until it passes', name);
-
-// if (rerunFailedOnly)
-//   console.log('%s it only reruns specs which have failed', name);
 
 /**
  * Quick and dirty deep clone
@@ -66,7 +50,7 @@ const parseFeatureFiles = async (tempfailedSpecs, path) => {
     if (err) return console.log(err)
     files.forEach((file) => {
       let result
-      fs.readFile(path + file, 'utf8', (err, data) => {
+      fs.readFile(path + '/'+ file, 'utf8', (err, data) => {
         if (err) return console.log(err)
         result = data
         tempfailedSpecs.forEach((test) => {
@@ -86,14 +70,14 @@ const parseFeatureFiles = async (tempfailedSpecs, path) => {
     })
   })
 }
+
 let tags = ''
 parseArguments()
   .then((options) => {
     debug('parsed CLI options %o', options)
     tags = options.env.replace('TAGS=not @wip and ', '')
-    console.log(`tags that would be replaced by @failed : ${tags}`)
+    debug(`tags that would be replaced by @failed : ${tags}`)
 
-    // TODO take parsed options and form a list of options
     const allRunOptions = []
 
     for (let k = 0; k < repeatNtimes; k += 1) {
@@ -125,7 +109,6 @@ parseArguments()
        */
       const onTestResults = (testResults) => {
         debug('is %d the last run? %o', k, isLastRun)
-        // if (rerunFailedOnly && !isLastRun) {
         const tempfailedSpecs = []
 
         testResults.runs.forEach((run) => {
@@ -134,10 +117,7 @@ parseArguments()
             if (test.state === 'failed') tempfailedSpecs.push(test.title)
           })
         })
-        parseFeatureFiles(
-          tempfailedSpecs,
-          featureFilesPath
-        )
+
 
         const failedSpecs = testResults.runs
           .filter((run) => run.stats.failures != 0)
@@ -147,6 +127,11 @@ parseArguments()
         if (failedSpecs.length) {
           console.log('%s failed specs', name)
           debug('failed specs %o ', tempfailedSpecs)
+          debug('parsing failed specs for the rerun')
+          parseFeatureFiles(
+            tempfailedSpecs,
+            featureFilesPath
+          )
           allRunOptions[k + 1].env = allRunOptions[k + 1].env.replace(
             tags,
             '@failed',
@@ -157,37 +142,32 @@ parseArguments()
           console.log('%s exiting', name)
           process.exit(0)
         }
-        // }
 
         if (testResults.status === 'failed')
           if (testResults.failures) {
-            // failed to even run Cypress tests
             console.error(testResults.message)
             return process.exit(testResults.failures)
           }
 
         if (testResults.status === 'finished')
           if (testResults.totalFailed) {
-            // if (untilPasses) {
-            //   if (!testResults.totalFailed) {
-            //     console.log(
-            //       '%s successfully passed on run %d of %d',
-            //       name,
-            //       k + 1,
-            //       n,
-            //     );
-            //     process.exit(0);
-            //   }
-            //   console.error('%s run %d of %d failed', name, k + 1, n);
-            //   if (k === n - 1) {
-            //     console.error('%s no more attempts left', name);
-            //     process.exit(testResults.totalFailed);
-            //   }
-            // } else
+              if (!testResults.totalFailed) {
+                console.log(
+                  '%s successfully passed on run %d of %d',
+                  name,
+                  k + 1,
+                  n,
+                );
+                process.exit(0);
+              }
+              console.error('%s run %d of %d failed', name, k + 1, n);
+              if (k === n - 1) {
+                console.error('%s no more attempts left', name);
+                process.exit(testResults.totalFailed);
+              }
             console.error('%s run %d of %d failed', name, k + 1, n)
-            // if (!rerunFailedOnly || isLastRun)
-            process.exit(testResults.totalFailed)
-            // eslint-disable-next-line no-undef
+            if (isLastRun)
+              process.exit(testResults.totalFailed)
           }
       }
       debug(runOptions)
