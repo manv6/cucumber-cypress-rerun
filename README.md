@@ -21,6 +21,20 @@ npx cucumber-cypress-rerun run ... rest of "cypress run" arguments
 ```
 
 Which will run Cypresss `1` time, exiting after the first failed run or after run finish successfully.
+## Feature files path
+You should pass the feature file folder as argument for the plugin to know where are the feature files
+
+```shell
+--feature-files <path_to_feature_files> ... rest of "cypress run" arguments 
+```
+## Use tags to make it happen 
+
+Add in env arguments the following 
+```shell 
+-env TAGS=not @wip and <tag>
+```
+
+The plugin will keep the failed scenarios and will replace the selected tag with @failed for the second run to execute only failed ones
 
 ## Debugging
 

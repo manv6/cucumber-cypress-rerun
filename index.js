@@ -26,11 +26,13 @@ debug('process argv %o', process.argv)
 const args = arg(
   {
     '-n': Number,
+    '--feature-files': String
   },
   { permissive: true },
 )
 const name = 'cucumber-cypress-rerun:'
 const repeatNtimes =  1
+const featureFilesPath = '--feature-files' in args ? args['--feature-files'] : 'cypress/e2e/'
 // const untilPasses = '--until-passes' in args ? args['--until-passes'] : false
 // const rerunFailedOnly =
 //   '--rerun-failed-only' in args ? args['--rerun-failed-only'] : false
@@ -134,7 +136,7 @@ parseArguments()
         })
         parseFeatureFiles(
           tempfailedSpecs,
-          runOptions.spec.replace('**/*.features', ''),
+          featureFilesPath
         )
 
         const failedSpecs = testResults.runs
