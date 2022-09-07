@@ -79,7 +79,7 @@ let tags = ''
 parseArguments()
   .then((options) => {
     debug('parsed CLI options %o', options)
-    if (options.env.includes(TAGS))
+    if (options.env.includes('TAGS'))
       tags = options.env.replace('TAGS=not @wip and ', '')
     debug(`tags that would be replaced by @failed : ${tags}`)
 
