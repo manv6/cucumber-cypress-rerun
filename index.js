@@ -17,17 +17,21 @@ require('dotenv').config()
 debug('process argv %o', process.argv)
 const args = arg(
   {
-    '--feature-files': String
+    '--feature-files': String,
   },
   { permissive: true },
 )
 const name = 'cucumber-cypress-rerun:'
-const repeatNtimes =  2
-const featureFilesPath = '--feature-files' in args ? args['--feature-files'] : 'cypress/e2e/'
+const repeatNtimes = 2
+const featureFilesPath =
+  '--feature-files' in args ? args['--feature-files'] : 'cypress/e2e/'
 
 console.log('%s will repeat Cypress command %d time(s)', name, repeatNtimes)
-console.log('%s will look for feature files in %s folder', name, featureFilesPath)
-
+console.log(
+  '%s will look for feature files in %s folder',
+  name,
+  featureFilesPath,
+)
 
 /**
  * Quick and dirty deep clone
@@ -61,7 +65,7 @@ const parseFeatureFiles = async (tempfailedSpecs, path) => {
             `\t@failed \n\tScenario: ${test[1]}`,
           )
         })
-        fs.writeFile(path + '/' +  file, result, 'utf8', (err) => {
+        fs.writeFile(path + '/' + file, result, 'utf8', (err) => {
           if (err) return console.log(err)
           debug('Scenario replaced')
         })
@@ -75,7 +79,8 @@ let tags = ''
 parseArguments()
   .then((options) => {
     debug('parsed CLI options %o', options)
-    tags = options.env.replace('TAGS=not @wip and ', '')
+    if (options.env.includes(TAGS))
+      tags = options.env.replace('TAGS=not @wip and ', '')
     debug(`tags that would be replaced by @failed : ${tags}`)
 
     const allRunOptions = []
@@ -118,7 +123,6 @@ parseArguments()
           })
         })
 
-
         const failedSpecs = testResults.runs
           .filter((run) => run.stats.failures != 0)
           .map((run) => run.spec.relative)
@@ -128,14 +132,14 @@ parseArguments()
           console.log('%s failed specs', name)
           debug('failed specs %o ', tempfailedSpecs)
           debug('parsing failed specs for the rerun')
-          parseFeatureFiles(
-            tempfailedSpecs,
-            featureFilesPath
-          )
-          allRunOptions[k + 1].env = allRunOptions[k + 1].env.replace(
-            tags,
-            '@failed',
-          )
+          parseFeatureFiles(tempfailedSpecs, featureFilesPath)
+          if (tags)
+            allRunOptions[k + 1].env = allRunOptions[k + 1].env.replace(
+              tags,
+              '@failed',
+            )
+          else
+            allRunOptions[k + 1].env = allRunOptions[k + 1].env.concat(',tags=@failed')
           allRunOptions[k + 1].spec = failedSpecs
         } else {
           console.log('%s there were no failed specs', name)
@@ -151,23 +155,22 @@ parseArguments()
 
         if (testResults.status === 'finished')
           if (testResults.totalFailed) {
-              if (!testResults.totalFailed) {
-                console.log(
-                  '%s successfully passed on run %d of %d',
-                  name,
-                  k + 1,
-                  n,
-                );
-                process.exit(0);
-              }
-              console.error('%s run %d of %d failed', name, k + 1, n);
-              if (k === n - 1) {
-                console.error('%s no more attempts left', name);
-                process.exit(testResults.totalFailed);
-              }
+            if (!testResults.totalFailed) {
+              console.log(
+                '%s successfully passed on run %d of %d',
+                name,
+                k + 1,
+                n,
+              )
+              process.exit(0)
+            }
             console.error('%s run %d of %d failed', name, k + 1, n)
-            if (isLastRun)
+            if (k === n - 1) {
+              console.error('%s no more attempts left', name)
               process.exit(testResults.totalFailed)
+            }
+            console.error('%s run %d of %d failed', name, k + 1, n)
+            if (isLastRun) process.exit(testResults.totalFailed)
           }
       }
       debug(runOptions)

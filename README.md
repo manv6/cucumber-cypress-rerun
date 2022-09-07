@@ -1,4 +1,4 @@
-# cucumber-cypress-rerun [![ci status][ci image]][ci url] [![renovate-app badge][renovate-badge]][renovate-app] ![cypress version](https://img.shields.io/badge/cypress-10.3.1-brightgreen)
+# cucumber-cypress-rerun [![renovate-app badge][renovate-badge]][renovate-app] ![cypress version](https://img.shields.io/badge/cypress-10.3.1-brightgreen)
 
 > A plugin to run cypress cucumber failed scenarios after run
 
@@ -27,6 +27,8 @@ You should pass the feature file folder as argument for the plugin to know where
 ```shell
 --feature-files <path_to_feature_files> ... rest of "cypress run" arguments 
 ```
+
+If no argument passed plugin will look for feature files in the default cypress location `cypress/e2e/`
 ## Use tags to make it happen 
 
 Add in env arguments the following 
@@ -36,6 +38,7 @@ Add in env arguments the following
 
 The plugin will keep the failed scenarios and will replace the selected tag with @failed for the second run to execute only failed ones
 
+if not tags used then all scenarios will run and on the second run an env argument will be passed to filter scenarios by `@failed` tag.
 ## Debugging
 
 Run this script with environment variable `DEBUG=cucumber-cypress-rerun` to see verbose logs
@@ -44,7 +47,5 @@ Run this script with environment variable `DEBUG=cucumber-cypress-rerun` to see 
 
 This NPM module retries the entire Cypress run, if you need to retry just the failed tests, use the [Test Retries](https://docs.cypress.io/guides/guides/test-retries).
 
-[ci image]: https://github.com/manv6/cucumber-cypress-rerun/workflows/ci/badge.svg?branch=main
-[ci url]: https://github.com/manv6/cucumber-cypress-rerun/actions
 [renovate-badge]: https://img.shields.io/badge/renovate-app-blue.svg
 [renovate-app]: https://renovateapp.com/
