@@ -58,17 +58,19 @@ const parseFeatureFiles = async (tempfailedSpecs, path) => {
         if (err) return console.log(err)
         result = data
         tempfailedSpecs.forEach((test) => {
-          debug(`Replacing Scenario: ${test[1]} with: `)
-          debug(`@failed \nScenario: ${test[1]}`)
-          result = result.replace(
-            `Scenario: ${test[1]}`,
-            `\t@failed \n\tScenario: ${test[1]}`,
-          )
+          if(result.includes(`Scenario: ${test}`))
+            debug(`Replacing Scenario: ${test} with: `)
+            debug(`@failed \nScenario: ${test}`)
+            result = result.replace(
+              `Scenario: ${test}`,
+              `\t@failed \n\tScenario: ${test}`,
+            );
         })
-        fs.writeFile(path + '/' + file, result, 'utf8', (err) => {
-          if (err) return console.log(err)
-          debug('Scenario replaced')
-        })
+        if(result !== data)
+          fs.writeFile(path + '/' + file, result, 'utf8', (err) => {
+            if (err) return console.log(err)
+            debug('Scenario replaced')
+          });
         result = ''
       })
     })
@@ -100,7 +102,9 @@ parseArguments()
           runOptions.group += `-${k + 1}-of-${repeatNtimes}`
       }
       allRunOptions.push(runOptions)
+     
     }
+    debug(allRunOptions);
     return allRunOptions
   })
   .then((allRunOptions) =>
@@ -115,13 +119,12 @@ parseArguments()
       const onTestResults = (testResults) => {
         debug('is %d the last run? %o', k, isLastRun)
         const tempfailedSpecs = []
-
-        testResults.runs.forEach((run) => {
-          run.tests.forEach((test) => {
-            debug(test.title)
-            if (test.state === 'failed') tempfailedSpecs.push(test.title)
+          testResults.runs.forEach((run) => {
+            run.tests.forEach((test) => {
+              debug(test.title[2])
+              if (test.state === 'failed') tempfailedSpecs.push(test.title[2])
+            })
           })
-        })
 
         const failedSpecs = testResults.runs
           .filter((run) => run.stats.failures != 0)
@@ -133,14 +136,18 @@ parseArguments()
           debug('failed specs %o ', tempfailedSpecs)
           debug('parsing failed specs for the rerun')
           parseFeatureFiles(tempfailedSpecs, featureFilesPath)
-          if (tags)
-            allRunOptions[k + 1].env = allRunOptions[k + 1].env.replace(
-              tags,
-              '@failed',
-            )
-          else
-            allRunOptions[k + 1].env = allRunOptions[k + 1].env.concat(',tags=@failed')
-          allRunOptions[k + 1].spec = failedSpecs
+
+          debug(allRunOptions)
+          if(!isLastRun){
+            if (tags)
+              allRunOptions[k + 1].env = allRunOptions[k + 1].env.replace(
+                tags,
+                '@failed',
+              )
+            else 
+              allRunOptions[k + 1].env = allRunOptions[k + 1].env.concat(',tags=@failed')
+            allRunOptions[k + 1].spec = failedSpecs
+          }
         } else {
           console.log('%s there were no failed specs', name)
           console.log('%s exiting', name)
