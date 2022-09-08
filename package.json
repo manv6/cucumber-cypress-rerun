@@ -1,9 +1,9 @@
 {
   "name": "cucumber-cypress-rerun",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A plugin to run cypress cucumber failed scenarios after run",
   "bin": {
-    "cucumber-cypress-repeat": "index.js"
+    "cucumber-cypress-rerun": "index.js"
   },
   "files": [
     "index.js"
