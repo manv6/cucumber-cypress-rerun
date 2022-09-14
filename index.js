@@ -58,13 +58,23 @@ const parseFeatureFiles = async (tempfailedSpecs, path) => {
         if (err) return console.log(err)
         result = data
         tempfailedSpecs.forEach((test) => {
-          if(result.includes(`Scenario: ${test}`))
+          if(test.includes('(example')) {
+            debug(`Replacing Scenario Outline: ${test.substring(0, test.length - 13)} with: `)
+            debug(`@failed \nScenario Outline: ${test.substring(0, test.length - 13)}`)
+            result = result.replace(
+              `Scenario Outline: ${test.substring(0, test.length - 13)}`,
+              `\t@failed \n\tScenario Outline: ${test.substring(0, test.length - 13)}`,
+            );
+          }
+          else 
+          if(result.includes(`Scenario: ${test}`)) {
             debug(`Replacing Scenario: ${test} with: `)
             debug(`@failed \nScenario: ${test}`)
             result = result.replace(
               `Scenario: ${test}`,
               `\t@failed \n\tScenario: ${test}`,
             );
+          }
         })
         if(result !== data)
           fs.writeFile(path + '/' + file, result, 'utf8', (err) => {
