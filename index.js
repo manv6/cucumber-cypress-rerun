@@ -131,8 +131,8 @@ parseArguments()
         const tempfailedSpecs = []
           testResults.runs.forEach((run) => {
             run.tests.forEach((test) => {
-              debug(test.title[2])
-              if (test.state === 'failed') tempfailedSpecs.push(test.title[2])
+              debug(test.title[1])
+              if (test.state === 'failed') tempfailedSpecs.push(test.title[1])
             })
           })
 
