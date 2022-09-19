@@ -149,7 +149,7 @@ parseArguments()
 
           debug(allRunOptions)
           if(!isLastRun){
-            if (tags)
+            if (tags!=empty)
               allRunOptions[k + 1].env = allRunOptions[k + 1].env.replace(
                 tags,
                 '@failed',
