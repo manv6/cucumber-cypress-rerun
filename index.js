@@ -10,6 +10,7 @@ const cypress = require('cypress')
 
 const arg = require('arg')
 const Bluebird = require('bluebird')
+const { empty } = require('ramda')
 
 // if there is an .env file, loads it and add to process.env
 require('dotenv').config()
@@ -58,29 +59,40 @@ const parseFeatureFiles = async (tempfailedSpecs, path) => {
         if (err) return console.log(err)
         result = data
         tempfailedSpecs.forEach((test) => {
-          if(test.includes('(example')) {
-            debug(`Replacing Scenario Outline: ${test.substring(0, test.length - 13)} with: `)
-            debug(`@failed \nScenario Outline: ${test.substring(0, test.length - 13)}`)
+          if (test.includes('(example')) {
+            debug(
+              `Replacing Scenario Outline: ${test.substring(
+                0,
+                test.length - 13,
+              )} with: `,
+            )
+            debug(
+              `@failed \nScenario Outline: ${test.substring(
+                0,
+                test.length - 13,
+              )}`,
+            )
             result = result.replace(
               `Scenario Outline: ${test.substring(0, test.length - 13)}`,
-              `\t@failed \n\tScenario Outline: ${test.substring(0, test.length - 13)}`,
-            );
-          }
-          else 
-          if(result.includes(`Scenario: ${test}`)) {
+              `\t@failed \n\tScenario Outline: ${test.substring(
+                0,
+                test.length - 13,
+              )}`,
+            )
+          } else if (result.includes(`Scenario: ${test}`)) {
             debug(`Replacing Scenario: ${test} with: `)
             debug(`@failed \nScenario: ${test}`)
             result = result.replace(
               `Scenario: ${test}`,
               `\t@failed \n\tScenario: ${test}`,
-            );
+            )
           }
         })
-        if(result !== data)
+        if (result !== data)
           fs.writeFile(path + '/' + file, result, 'utf8', (err) => {
             if (err) return console.log(err)
             debug('Scenario replaced')
-          });
+          })
         result = ''
       })
     })
@@ -92,14 +104,16 @@ parseArguments()
   .then((options) => {
     debug('parsed CLI options %o', options)
     if (options.env.includes('TAGS'))
-      tags = options.env.replace('TAGS=not @wip and ', '')
+      if (options.env.includes('and @')) {
+        tags = options.env.replace('TAGS=not @ignore and ', '')
+      }
     debug(`tags that would be replaced by @failed : ${tags}`)
 
     const allRunOptions = []
 
     for (let k = 0; k < repeatNtimes; k += 1) {
       const runOptions = clone(options)
-      const envVariables = `allureClearSkippedTests=true`
+      const envVariables = ``
       if (!('env' in runOptions)) runOptions.env = envVariables
       else runOptions.env += `,${envVariables}`
 
@@ -112,9 +126,8 @@ parseArguments()
           runOptions.group += `-${k + 1}-of-${repeatNtimes}`
       }
       allRunOptions.push(runOptions)
-     
     }
-    debug(allRunOptions);
+    debug(allRunOptions)
     return allRunOptions
   })
   .then((allRunOptions) =>
@@ -129,12 +142,12 @@ parseArguments()
       const onTestResults = (testResults) => {
         debug('is %d the last run? %o', k, isLastRun)
         const tempfailedSpecs = []
-          testResults.runs.forEach((run) => {
-            run.tests.forEach((test) => {
-              debug(test.title[1])
-              if (test.state === 'failed') tempfailedSpecs.push(test.title[1])
-            })
+        testResults.runs.forEach((run) => {
+          run.tests.forEach((test) => {
+            debug(test.title[2])
+            if (test.state === 'failed') tempfailedSpecs.push(test.title[2])
           })
+        })
 
         const failedSpecs = testResults.runs
           .filter((run) => run.stats.failures != 0)
@@ -148,14 +161,15 @@ parseArguments()
           parseFeatureFiles(tempfailedSpecs, featureFilesPath)
 
           debug(allRunOptions)
-          if(!isLastRun){
-            if (tags!=empty)
+          if (!isLastRun) {
+            if (tags != empty)
               allRunOptions[k + 1].env = allRunOptions[k + 1].env.replace(
                 tags,
                 '@failed',
               )
-            else 
-              allRunOptions[k + 1].env = allRunOptions[k + 1].env.concat(',tags=@failed')
+            else
+              allRunOptions[k + 1].env =
+                allRunOptions[k + 1].env.concat(',tags=@failed')
             allRunOptions[k + 1].spec = failedSpecs
           }
         } else {

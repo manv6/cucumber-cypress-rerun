@@ -1,6 +1,6 @@
 {
   "name": "cucumber-cypress-rerun",
-  "version": "2.0.0-old",
+  "version": "2.1.0",
   "description": "A plugin to run cypress cucumber failed scenarios after run",
   "bin": {
     "cucumber-cypress-rerun": "index.js"
@@ -36,7 +36,8 @@
     "arg": "5.0.2",
     "bluebird": "3.7.2",
     "debug": "4.3.4",
-    "dotenv": "16.0.1"
+    "dotenv": "16.0.1",
+    "ramda": "^0.28.0"
   },
   "peerDependencies": {
     "cypress": ">=10.3.0"
