@@ -113,7 +113,7 @@ parseArguments()
       const runOptions = clone(options)
       const envVariables = ``
       if (!('env' in runOptions)) runOptions.env = envVariables
-      else runOptions.env += `,${envVariables}`
+      // else runOptions.env += `,${envVariables}`
 
       if (options.record && options.group) {
         // if we are recording, thus we need to update the group name to avoid clashing
