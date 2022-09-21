@@ -104,9 +104,7 @@ parseArguments()
   .then((options) => {
     debug('parsed CLI options %o', options)
     if (options.env.includes('TAGS'))
-      if (options.env.includes('and @')) {
-        tags = options.env.replace('TAGS=not @ignore and ', '')
-      }
+      tags = options.env.substring(5,options.env.length);
     debug(`tags that would be replaced by @failed : ${tags}`)
 
     const allRunOptions = []
@@ -115,7 +113,7 @@ parseArguments()
       const runOptions = clone(options)
       const envVariables = ``
       if (!('env' in runOptions)) runOptions.env = envVariables
-      else runOptions.env += `,${envVariables}`
+      // else runOptions.env += `,${envVariables}`
 
       if (options.record && options.group) {
         // if we are recording, thus we need to update the group name to avoid clashing
