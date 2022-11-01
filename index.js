@@ -140,6 +140,10 @@ parseArguments()
       const onTestResults = (testResults) => {
         debug('is %d the last run? %o', k, isLastRun)
         const tempfailedSpecs = []
+        if (typeof testResults.runs === 'undefined') {
+          console.log('***** No tests ran in initial run, nothing to rerun. Exiting... *****')
+          process.exit(0)
+        }
         testResults.runs.forEach((run) => {
           run.tests.forEach((test) => {
             debug(test.title[2])
