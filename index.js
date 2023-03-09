@@ -19,7 +19,7 @@ debug('process argv %o', process.argv)
 const args = arg(
   {
     '--feature-files': String,
-    '--delay': Int8Array,
+    '--delay': String,
   },
   { permissive: true },
 )
@@ -29,7 +29,7 @@ const featureFilesPath =
   '--feature-files' in args ? args['--feature-files'] : 'cypress/e2e/'
 
 const dealyBetweenRuns =
-  '--delay' in args ? args['--delay'] : 0
+  '--delay' in args ? args['--delay'] : '0'
 
 console.log('%s will repeat Cypress command %d time(s)', name, repeatNtimes)
 console.log(
@@ -103,13 +103,9 @@ const parseFeatureFiles = async (tempfailedSpecs, path) => {
   })
 }
 
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 let tags = ''
 parseArguments()
-  .then((options) => {
+  .then(async (options) => {
     debug('parsed CLI options %o', options)
     if (options.env.includes('TAGS'))
       tags = options.env.substring(5,options.env.length);
@@ -136,12 +132,20 @@ parseArguments()
     debug(allRunOptions)
     return allRunOptions
   })
-  .then((allRunOptions) =>
+  .then(async (allRunOptions) =>
     // @ts-ignore
     Bluebird.mapSeries(allRunOptions, (runOptions, k, n) => {
       const isLastRun = k === n - 1
       console.log('***** %s %d of %d *****', name, k + 1, n)
-
+      if ((k + 1) === n) {
+        console.log('***** waiting for %d secs before rerun *****', parseInt(dealyBetweenRuns))
+        const date = Date.now();
+        let currentDate = null;
+        do {
+          currentDate = Date.now();
+        } while (currentDate - date < parseInt(dealyBetweenRuns) * 1000);
+        console.log("'***** Finish waiting starting rerun *****");
+      }
       /**
        * @type {(testResults: CypressCommandLine.CypressRunResult | CypressCommandLine.CypressFailedRunResult) => void}
        */
@@ -216,7 +220,7 @@ parseArguments()
           }
       }
       debug(runOptions)
-      await sleep(delay * 1000)
+      
       return cypress.run(runOptions).then(onTestResults)
     }),
   )
