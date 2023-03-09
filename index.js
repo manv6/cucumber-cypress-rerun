@@ -19,6 +19,7 @@ debug('process argv %o', process.argv)
 const args = arg(
   {
     '--feature-files': String,
+    '--delay': Int8Array,
   },
   { permissive: true },
 )
@@ -26,6 +27,9 @@ const name = 'cucumber-cypress-rerun:'
 const repeatNtimes = 2
 const featureFilesPath =
   '--feature-files' in args ? args['--feature-files'] : 'cypress/e2e/'
+
+const dealyBetweenRuns =
+  '--delay' in args ? args['--delay'] : 0
 
 console.log('%s will repeat Cypress command %d time(s)', name, repeatNtimes)
 console.log(
@@ -97,6 +101,10 @@ const parseFeatureFiles = async (tempfailedSpecs, path) => {
       })
     })
   })
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 let tags = ''
@@ -208,6 +216,7 @@ parseArguments()
           }
       }
       debug(runOptions)
+      await sleep(delay * 1000)
       return cypress.run(runOptions).then(onTestResults)
     }),
   )
