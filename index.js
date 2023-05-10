@@ -107,10 +107,13 @@ let tags = ''
 parseArguments()
   .then(async (options) => {
     debug('parsed CLI options %o', options)
-    if (options.env.includes('TAGS'))
-      tags = options.env.substring(5,options.env.length);
-    debug(`tags that would be replaced by @failed : ${tags}`)
-
+    const envOptions = options.env.split(',')
+    debug(envOptions)
+    for( const envOption of envOptions){
+      if (envOption.includes('TAGS'))
+        tags = envOption.substring(5,envOption.length);
+        debug(`tags that would be replaced by @failed : ${tags}`)
+    }
     const allRunOptions = []
 
     for (let k = 0; k < repeatNtimes; k += 1) {
@@ -178,10 +181,10 @@ parseArguments()
           debug(allRunOptions)
           if (!isLastRun) {
             if (tags != empty)
-              allRunOptions[k + 1].env = allRunOptions[k + 1].env.replace(
+              allRunOptions[k + 1].env = allRunOptions[k + 1].env.split(',')[0].replace(
                 tags,
                 '@failed',
-              )
+              ).concat(','+allRunOptions[k + 1].env.split(',')[1])
             else
               allRunOptions[k + 1].env =
                 allRunOptions[k + 1].env.concat(',tags=@failed')
