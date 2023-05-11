@@ -180,11 +180,14 @@ parseArguments()
 
           debug(allRunOptions)
           if (!isLastRun) {
-            if (tags != empty)
+            if (tags != empty) {
               allRunOptions[k + 1].env = allRunOptions[k + 1].env.split(',')[0].replace(
                 tags,
                 '@failed',
-              ).concat(','+allRunOptions[k + 1].env.split(',')[1])
+              )
+              if(allRunOptions[k + 1].env.split(',')[1] !== undefined)
+                allRunOptions[k + 1].env = allRunOptions[k + 1].env.concat(','+allRunOptions[k + 1].env.split(',')[1])
+            }
             else
               allRunOptions[k + 1].env =
                 allRunOptions[k + 1].env.concat(',tags=@failed')
