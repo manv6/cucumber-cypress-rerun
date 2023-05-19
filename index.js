@@ -180,17 +180,18 @@ parseArguments()
 
           debug(allRunOptions)
           if (!isLastRun) {
+            const envList = allRunOptions[k + 1].env.split(',');
             if (tags != empty) {
-              allRunOptions[k + 1].env = allRunOptions[k + 1].env.split(',')[0].replace(
+              allRunOptions[k + 1].env = envList[0].replace(
                 tags,
                 '@failed',
               )
-              if(allRunOptions[k + 1].env.split(',')[1] !== undefined)
-                allRunOptions[k + 1].env = allRunOptions[k + 1].env.concat(','+allRunOptions[k + 1].env.split(',')[1])
+              if(envList[1] !== undefined)
+                allRunOptions[k + 1].env = allRunOptions[k + 1].env.concat(',' + envList[1])
             }
             else
               allRunOptions[k + 1].env =
-                allRunOptions[k + 1].env.concat(',tags=@failed')
+                allRunOptions[k + 1].env.concat(',TAGS=@failed')
             allRunOptions[k + 1].spec = failedSpecs
           }
         } else {
