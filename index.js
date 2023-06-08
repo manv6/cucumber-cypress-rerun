@@ -161,7 +161,7 @@ parseArguments()
         const tempfailedSpecs = []
         if (typeof testResults.runs === 'undefined') {
           console.log('***** No tests ran in initial run, nothing to rerun. Exiting... *****')
-          await promiseWaitForDatadog();
+          promiseWaitForDatadog();
           process.exit(0)
         }
         testResults.runs.forEach((run) => {
@@ -202,14 +202,14 @@ parseArguments()
         } else {
           console.log('%s there were no failed specs', name)
           console.log('%s exiting', name)
-          await promiseWaitForDatadog();
+          promiseWaitForDatadog();
           process.exit(0)
         }
 
         if (testResults.status === 'failed')
           if (testResults.failures) {
             console.error(testResults.message)
-            await promiseWaitForDatadog();
+            promiseWaitForDatadog();
             return process.exit(testResults.failures)
           }
 
@@ -222,18 +222,18 @@ parseArguments()
                 k + 1,
                 n,
               )
-              await promiseWaitForDatadog();
+              promiseWaitForDatadog();
               process.exit(0)
             }
             console.error('%s run %d of %d failed', name, k + 1, n)
             if (k === n - 1) {
               console.error('%s no more attempts left', name)
-              await promiseWaitForDatadog();
+              promiseWaitForDatadog();
               process.exit(testResults.totalFailed)
             }
             console.error('%s run %d of %d failed', name, k + 1, n)
             if (isLastRun) { 
-              await promiseWaitForDatadog();
+              promiseWaitForDatadog();
               process.exit(testResults.totalFailed) }
           }
       }
@@ -248,7 +248,7 @@ parseArguments()
   .catch((e) => {
     console.log('error: %s', e.message)
     console.error(e)
-    await promiseWaitForDatadog();
+    promiseWaitForDatadog();
     process.exit(1)
   })
 
