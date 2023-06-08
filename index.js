@@ -103,6 +103,10 @@ const parseFeatureFiles = async (tempfailedSpecs, path) => {
   })
 }
 
+const promiseWaitForDatadog = async () => {
+  await new Promise(resolve => setTimeout(resolve, 3000)).then(() => {});
+};
+
 let tags = ''
 parseArguments()
   .then(async (options) => {
@@ -157,6 +161,7 @@ parseArguments()
         const tempfailedSpecs = []
         if (typeof testResults.runs === 'undefined') {
           console.log('***** No tests ran in initial run, nothing to rerun. Exiting... *****')
+          await promiseWaitForDatadog();
           process.exit(0)
         }
         testResults.runs.forEach((run) => {
@@ -197,12 +202,14 @@ parseArguments()
         } else {
           console.log('%s there were no failed specs', name)
           console.log('%s exiting', name)
+          await promiseWaitForDatadog();
           process.exit(0)
         }
 
         if (testResults.status === 'failed')
           if (testResults.failures) {
             console.error(testResults.message)
+            await promiseWaitForDatadog();
             return process.exit(testResults.failures)
           }
 
@@ -215,15 +222,19 @@ parseArguments()
                 k + 1,
                 n,
               )
+              await promiseWaitForDatadog();
               process.exit(0)
             }
             console.error('%s run %d of %d failed', name, k + 1, n)
             if (k === n - 1) {
               console.error('%s no more attempts left', name)
+              await promiseWaitForDatadog();
               process.exit(testResults.totalFailed)
             }
             console.error('%s run %d of %d failed', name, k + 1, n)
-            if (isLastRun) process.exit(testResults.totalFailed)
+            if (isLastRun) { 
+              await promiseWaitForDatadog();
+              process.exit(testResults.totalFailed) }
           }
       }
       debug(runOptions)
@@ -237,5 +248,7 @@ parseArguments()
   .catch((e) => {
     console.log('error: %s', e.message)
     console.error(e)
+    await promiseWaitForDatadog();
     process.exit(1)
   })
+
