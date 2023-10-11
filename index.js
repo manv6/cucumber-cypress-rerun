@@ -24,19 +24,12 @@ const args = arg(
   { permissive: true },
 )
 const name = 'cucumber-cypress-rerun:'
-const repeatNtimes = 2
-const featureFilesPath =
-  '--feature-files' in args ? args['--feature-files'] : 'cypress/e2e/'
-
-const dealyBetweenRuns =
-  '--delay' in args ? args['--delay'] : '0'
+const repeatNtimes =  '--repeat' in args ? args['--repeat'] : '2'
+const featureFilesPath = '--feature-files' in args ? args['--feature-files'] : 'cypress/e2e/'
+const dealyBetweenRuns = '--delay' in args ? args['--delay'] : '0'
 
 console.log('%s will repeat Cypress command %d time(s)', name, repeatNtimes)
-console.log(
-  '%s will look for feature files in %s folder',
-  name,
-  featureFilesPath,
-)
+console.log('%s will look for feature files in %s folder', name, featureFilesPath)
 
 /**
  * Quick and dirty deep clone
