@@ -20,6 +20,7 @@ const args = arg(
   {
     '--feature-files': String,
     '--delay': String,
+    '--repeat': String,
   },
   { permissive: true },
 )
