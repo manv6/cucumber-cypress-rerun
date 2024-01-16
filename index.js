@@ -199,15 +199,15 @@ parseArguments()
           promiseWaitForDatadog();
           process.exit(0)
         }
+        // console.log(JSON.stringify(testResults))
+        // if (testResults)
+        //   if (testResults.failures) {
+        //     console.log(testResults.message)
+        //     promiseWaitForDatadog();
+        //     process.exit(1)
+        //   }
 
-        if (testResults.status === 'failed')
-          if (testResults.failures) {
-            console.error(testResults.message)
-            promiseWaitForDatadog();
-            return process.exit(testResults.failures)
-          }
-
-        if (testResults.status === 'finished')
+        if (testResults)
           if (testResults.totalFailed) {
             if (!testResults.totalFailed) {
               console.log(
@@ -223,12 +223,13 @@ parseArguments()
             if (k === n - 1) {
               console.error('%s no more attempts left', name)
               promiseWaitForDatadog();
-              process.exit(testResults.totalFailed)
+              process.exit(1)
             }
             console.error('%s run %d of %d failed', name, k + 1, n)
             if (isLastRun) { 
               promiseWaitForDatadog();
-              process.exit(testResults.totalFailed) }
+              process.exit(1) 
+            }
           }
       }
       debug(runOptions)
