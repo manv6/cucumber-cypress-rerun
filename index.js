@@ -75,14 +75,14 @@ const parseFeatureFiles = async (tempfailedSpecs, path) => {
               `\t@failed \n\tScenario Outline: ${test.substring(
                 0,
                 test.length - 13,
-              )}`,
+              )} - rerun`,
             )
           } else if (result.includes(`Scenario: ${test}`)) {
             debug(`Replacing Scenario: ${test} with: `)
             debug(`@failed \nScenario: ${test}`)
             result = result.replace(
               `Scenario: ${test}`,
-              `\t@failed \n\tScenario: ${test}`,
+              `\t@failed \n\tScenario: ${test} - rerun`,
             )
           }
         })
