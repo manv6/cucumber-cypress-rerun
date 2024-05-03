@@ -46,7 +46,23 @@ const parseArguments = async () => {
   debug('parsing Cypress CLI %o', cliArgs)
   return await cypress.cli.parseRunArguments(cliArgs)
 }
+const replaceFeatureTitle = (data) => {
+    // Split the file content into lines
+    const lines = data.split(/\r?\n/);
 
+    // Modify lines that start with 'Feature:'
+    const modifiedLines = lines.map(line => {
+      if (line.startsWith('Feature:')) {
+        return line + ' - Rerun'; // Append your string here
+      }
+      return line;
+    });
+  
+    // Join the modified lines back into a single string
+    const modifiedData = modifiedLines.join('\n');  
+    return modifiedData;
+
+}
 const parseFeatureFiles = async (tempfailedSpecs, path) => {
   fs.readdir(path, (err, files) => {
     debug(`All files: ${path} with: ${files}`)
@@ -55,21 +71,13 @@ const parseFeatureFiles = async (tempfailedSpecs, path) => {
       let result
       fs.readFile(path + '/' + file, 'utf8', (err, data) => {
         if (err) return console.log(err)
-        result = data
+        
+        result = replaceFeatureTitle(data)
+        console.log(result)
         tempfailedSpecs.forEach((test) => {
           if (test.includes('(example')) {
-            debug(
-              `Replacing Scenario Outline: ${test.substring(
-                0,
-                test.length - 13,
-              )} with: `,
-            )
-            debug(
-              `@failed \nScenario Outline: ${test.substring(
-                0,
-                test.length - 13,
-              )}`,
-            )
+            debug(`Replacing Scenario Outline: ${test.substring(0, test.length - 13, )} with: `)
+            debug(`@failed \nScenario Outline: ${test.substring(0, test.length - 13, )}`)
             result = result.replace(
               `Scenario Outline: ${test.substring(0, test.length - 13)}`,
               `\t@failed \n\tScenario Outline: ${test.substring(
@@ -246,4 +254,3 @@ parseArguments()
     promiseWaitForDatadog();
     process.exit(1)
   })
-

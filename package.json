@@ -1,6 +1,6 @@
 {
   "name": "cucumber-cypress-rerun",
-  "version": "2.4.5",
+  "version": "2.4.6",
   "description": "A plugin to run cypress cucumber failed scenarios after run",
   "bin": {
     "cucumber-cypress-rerun": "index.js"
