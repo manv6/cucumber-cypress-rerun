@@ -3,6 +3,7 @@
 // @ts-nocheck
 const debug = require('debug')('cucumber-cypress-rerun')
 const fs = require('fs')
+const pathModule = require('path');
 
 // allows us to debug any cypress install problems
 debug('requiring cypress with module.paths %o', module.paths)
@@ -30,6 +31,7 @@ const featureFilesPath = '--feature-files' in args ? args['--feature-files'] : '
 const dealyBetweenRuns = '--delay' in args ? args['--delay'] : '0'
 
 console.log('%s will repeat Cypress command %d time(s)', name, repeatNtimes)
+console.log('%s will delay Cypress command %d time(s)', name, dealyBetweenRuns)
 console.log('%s will look for feature files in %s folder', name, featureFilesPath)
 
 /**
@@ -63,47 +65,67 @@ const replaceFeatureTitle = (data) => {
     return modifiedData;
 
 }
-const parseFeatureFiles = async (tempfailedSpecs, path) => {
-  fs.readdir(path, (err, files) => {
-    debug(`All files: ${path} with: ${files}`)
-    if (err) return console.log(err)
+const fs = require('fs');
+const pathModule = require('path');
+
+const parseFeatureFiles = async (tempfailedSpecs, folderPath) => {
+  fs.readdir(folderPath, (err, files) => {
+    if (err) {
+      console.error(`Error reading directory ${folderPath}: ${err}`);
+      return;
+    }
+
     files.forEach((file) => {
-      let result
-      fs.readFile(path + '/' + file, 'utf8', (err, data) => {
-        if (err) return console.log(err)
-        
-        result = replaceFeatureTitle(data)
-        console.log(result)
-        tempfailedSpecs.forEach((test) => {
-          if (test.includes('(example')) {
-            debug(`Replacing Scenario Outline: ${test.substring(0, test.length - 13, )} with: `)
-            debug(`@failed \nScenario Outline: ${test.substring(0, test.length - 13, )}`)
-            result = result.replace(
-              `Scenario Outline: ${test.substring(0, test.length - 13)}`,
-              `\t@failed \n\tScenario Outline: ${test.substring(
-                0,
-                test.length - 13,
-              )} - rerun`,
-            )
-          } else if (result.includes(`Scenario: ${test}`)) {
-            debug(`Replacing Scenario: ${test} with: `)
-            debug(`@failed \nScenario: ${test}`)
-            result = result.replace(
-              `Scenario: ${test}`,
-              `\t@failed \n\tScenario: ${test} - rerun`,
-            )
-          }
-        })
-        if (result !== data)
-          fs.writeFile(path + '/' + file, result, 'utf8', (err) => {
-            if (err) return console.log(err)
-            debug('Scenario replaced')
-          })
-        result = ''
-      })
-    })
-  })
-}
+      const filePath = pathModule.join(folderPath, file);
+
+      fs.stat(filePath, (err, stats) => {
+        if (err) {
+          console.error(`Error getting stats for ${filePath}: ${err}`);
+          return;
+        }
+
+        if (stats.isDirectory()) {
+          // If it's a directory, recursively call parseFeatureFiles
+          parseFeatureFiles(tempfailedSpecs, filePath);
+        } else {
+          // If it's a file, process it
+          fs.readFile(filePath, 'utf8', (err, data) => {
+            if (err) {
+              console.error(`Error reading file ${filePath}: ${err}`);
+              return;
+            }
+
+            let result = data;
+            tempfailedSpecs.forEach((test) => {
+              if (test.includes('(example')) {
+                result = result.replace(
+                  new RegExp(`Scenario Outline: ${test.substring(0, test.length - 13)}\\b`, 'g'),
+                  `\t@failed \n\tScenario Outline: ${test.substring(0, test.length - 13)} - rerun`
+                );
+              } else if (result.includes(`Scenario: ${test}`)) {
+                result = result.replace(
+                  new RegExp(`Scenario: ${test}\\b`, 'g'),
+                  `\t@failed \n\tScenario: ${test} - rerun`
+                );
+              }
+            });
+
+            if (result !== data) {
+              fs.writeFile(filePath, result, 'utf8', (err) => {
+                if (err) {
+                  console.error(`Error writing file ${filePath}: ${err}`);
+                  return;
+                }
+                console.log(`File ${filePath} updated`);
+              });
+            }
+          });
+        }
+      });
+    });
+  });
+};
+
 
 const promiseWaitForDatadog = async () => {
   await new Promise(resolve => setTimeout(resolve, 3000)).then(() => {});
