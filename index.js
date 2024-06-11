@@ -87,13 +87,14 @@ const parseFeatureFiles = async (tempfailedSpecs, folderPath) => {
           parseFeatureFiles(tempfailedSpecs, filePath);
         } else {
           // If it's a file, process it
+          let result
           fs.readFile(filePath, 'utf8', (err, data) => {
             if (err) {
               console.error(`Error reading file ${filePath}: ${err}`);
               return;
             }
-
-            let result = data;
+            result = replaceFeatureTitle(data)
+            console.log(result)
             tempfailedSpecs.forEach((test) => {
               if (test.includes('(example')) {
                 result = result.replace(
