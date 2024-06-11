@@ -65,8 +65,6 @@ const replaceFeatureTitle = (data) => {
     return modifiedData;
 
 }
-const fs = require('fs');
-const pathModule = require('path');
 
 const parseFeatureFiles = async (tempfailedSpecs, folderPath) => {
   fs.readdir(folderPath, (err, files) => {
