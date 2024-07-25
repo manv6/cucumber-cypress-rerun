@@ -66,35 +66,23 @@ const replaceFeatureTitle = (data) => {
 
 }
 
-const parseFeatureFiles = async (tempfailedSpecs, folderPath) => {
-  fs.readdir(folderPath, (err, files) => {
-    if (err) {
-      console.error(`Error reading directory ${folderPath}: ${err}`);
-      return;
-    }
+const parseFeatureFiles = async (tempfailedSpecs, failedSpecs) => {
 
-    files.forEach((file) => {
-      const filePath = pathModule.join(folderPath, file);
-
-      fs.stat(filePath, (err, stats) => {
+    failedSpecs.forEach((file) => {
+      fs.stat(file, (err, stats) => {
         if (err) {
-          console.error(`Error getting stats for ${filePath}: ${err}`);
+          console.error(`Error getting stats for ${file}: ${err}`);
           return;
         }
 
-        if (stats.isDirectory()) {
-          // If it's a directory, recursively call parseFeatureFiles
-          parseFeatureFiles(tempfailedSpecs, filePath);
-        } else {
           // If it's a file, process it
           let result
-          fs.readFile(filePath, 'utf8', (err, data) => {
+          fs.readFile(file, 'utf8', (err, data) => {
             if (err) {
-              console.error(`Error reading file ${filePath}: ${err}`);
+              console.error(`Error reading file ${file}: ${err}`);
               return;
             }
             result = replaceFeatureTitle(data)
-            console.log(result)
             tempfailedSpecs.forEach((test) => {
               if (test.includes('(example')) {
                 result = result.replace(
@@ -102,6 +90,7 @@ const parseFeatureFiles = async (tempfailedSpecs, folderPath) => {
                   `\t@failed \n\tScenario Outline: ${test.substring(0, test.length - 13)} - rerun`
                 );
               } else if (result.includes(`Scenario: ${test}`)) {
+
                 result = result.replace(
                   new RegExp(`Scenario: ${test}\\b`, 'g'),
                   `\t@failed \n\tScenario: ${test} - rerun`
@@ -110,19 +99,17 @@ const parseFeatureFiles = async (tempfailedSpecs, folderPath) => {
             });
 
             if (result !== data) {
-              fs.writeFile(filePath, result, 'utf8', (err) => {
+              fs.writeFile(file, result, 'utf8', (err) => {
                 if (err) {
-                  console.error(`Error writing file ${filePath}: ${err}`);
+                  console.error(`Error writing file ${file}: ${err}`);
                   return;
                 }
-                console.log(`File ${filePath} updated`);
+                console.log(`File ${file} updated`);
               });
             }
           });
-        }
       });
     });
-  });
 };
 
 
@@ -174,7 +161,7 @@ parseArguments()
         do {
           currentDate = Date.now();
         } while (currentDate - date < parseInt(dealyBetweenRuns) * 1000);
-        console.log("'***** Finish waiting starting rerun *****");
+        console.log('***** Finish waiting starting rerun *****');
       }
       /**
        * @type {(testResults: CypressCommandLine.CypressRunResult | CypressCommandLine.CypressFailedRunResult) => void}
@@ -182,16 +169,22 @@ parseArguments()
       const onTestResults = (testResults) => {
         debug('is %d the last run? %o', k, isLastRun)
         const tempfailedSpecs = []
+        const tempfailedFiles = []
         if (typeof testResults.runs === 'undefined') {
           console.log('***** No tests ran in initial run, nothing to rerun. Exiting... *****')
           promiseWaitForDatadog();
           process.exit(0)
         }
         testResults.runs.forEach((run) => {
+          debug(run)
           run.tests.forEach((test) => {
+            debug(test)
             const testName = test.title[test.title.length - 1]
             debug(testName)
-            if (test.state === 'failed') tempfailedSpecs.push(testName)
+            if (test.state === 'failed') {
+              tempfailedSpecs.push(testName)
+              tempfailedFiles.push(run.spec.relative)
+            }
           })
         })
 
@@ -202,9 +195,10 @@ parseArguments()
 
         if (failedSpecs.length) {
           console.log('%s failed specs', name)
-          debug('failed specs %o ', tempfailedSpecs)
+          console.log('failed scenarios %o ', tempfailedSpecs)
+          console.log('failed files %o ', tempfailedFiles)
           debug('parsing failed specs for the rerun')
-          parseFeatureFiles(tempfailedSpecs, featureFilesPath)
+          parseFeatureFiles(tempfailedSpecs, tempfailedFiles)
 
           debug(allRunOptions)
           if (!isLastRun) {
