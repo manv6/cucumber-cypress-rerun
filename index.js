@@ -48,68 +48,50 @@ const parseArguments = async () => {
   debug('parsing Cypress CLI %o', cliArgs)
   return await cypress.cli.parseRunArguments(cliArgs)
 }
-const replaceFeatureTitle = (data) => {
-    // Split the file content into lines
-    const lines = data.split(/\r?\n/);
-
-    // Modify lines that start with 'Feature:'
-    const modifiedLines = lines.map(line => {
-      if (line.startsWith('Feature:')) {
-        return line + ' - Rerun'; // Append your string here
-      }
-      return line;
-    });
-  
-    // Join the modified lines back into a single string
-    const modifiedData = modifiedLines.join('\n');  
-    return modifiedData;
-
-}
 
 const parseFeatureFiles = async (tempfailedSpecs, failedSpecs) => {
 
-    failedSpecs.forEach((file) => {
-      fs.stat(file, (err, stats) => {
+  failedSpecs.forEach((file) => {
+    fs.stat(file, (err, stats) => {
+      if (err) {
+        console.error(`Error getting stats for ${file}: ${err}`);
+        return;
+      }
+
+      // If it's a file, process it
+      let result
+      fs.readFile(file, 'utf8', (err, data) => {
         if (err) {
-          console.error(`Error getting stats for ${file}: ${err}`);
+          console.error(`Error reading file ${file}: ${err}`);
           return;
         }
+        tempfailedSpecs.forEach((test) => {
+          if (test.includes('(example')) {
+            const result = data.replace(
+              new RegExp(`Scenario Outline:\\b`, 'g'),
+              `\t@failed \n\tScenario Outline:`
+            );
+          } else if (data.includes(`Scenario: ${test}`)) {
 
-          // If it's a file, process it
-          let result
-          fs.readFile(file, 'utf8', (err, data) => {
+            result = result.replace(
+              new RegExp(`Scenario: ${test}\\b`, 'g'),
+              `\t@failed \n\tScenario: ${test}`
+            );
+          }
+        });
+
+        if (result !== data) {
+          fs.writeFile(file, result, 'utf8', (err) => {
             if (err) {
-              console.error(`Error reading file ${file}: ${err}`);
+              console.error(`Error writing file ${file}: ${err}`);
               return;
             }
-            result = replaceFeatureTitle(data)
-            tempfailedSpecs.forEach((test) => {
-              if (test.includes('(example')) {
-                result = result.replace(
-                  new RegExp(`Scenario Outline: ${test.substring(0, test.length - 13)}\\b`, 'g'),
-                  `\t@failed \n\tScenario Outline: ${test.substring(0, test.length - 13)} - rerun`
-                );
-              } else if (result.includes(`Scenario: ${test}`)) {
-
-                result = result.replace(
-                  new RegExp(`Scenario: ${test}\\b`, 'g'),
-                  `\t@failed \n\tScenario: ${test} - rerun`
-                );
-              }
-            });
-
-            if (result !== data) {
-              fs.writeFile(file, result, 'utf8', (err) => {
-                if (err) {
-                  console.error(`Error writing file ${file}: ${err}`);
-                  return;
-                }
-                console.log(`File ${file} updated`);
-              });
-            }
+            console.log(`File ${file} updated`);
           });
+        }
       });
     });
+  });
 };
 
 
@@ -126,7 +108,7 @@ parseArguments()
     for( const envOption of envOptions){
       if (envOption.includes('TAGS'))
         tags = envOption.substring(5,envOption.length);
-        debug(`tags that would be replaced by @failed : ${tags}`)
+      debug(`tags that would be replaced by @failed : ${tags}`)
     }
     const allRunOptions = []
 
@@ -249,14 +231,14 @@ parseArguments()
               process.exit(1)
             }
             console.error('%s run %d of %d failed', name, k + 1, n)
-            if (isLastRun) { 
+            if (isLastRun) {
               promiseWaitForDatadog();
-              process.exit(1) 
+              process.exit(1)
             }
           }
       }
       debug(runOptions)
-      
+
       return cypress.run(runOptions).then(onTestResults)
     }),
   )
