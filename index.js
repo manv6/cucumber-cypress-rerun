@@ -67,13 +67,13 @@ const parseFeatureFiles = async (tempfailedSpecs, failedSpecs) => {
         }
         tempfailedSpecs.forEach((test) => {
           if (test.includes('(example')) {
-            const result = data.replace(
+            result = data.replace(
               new RegExp(`Scenario Outline:\\b`, 'g'),
               `\t@failed \n\tScenario Outline:`
             );
           } else if (data.includes(`Scenario: ${test}`)) {
 
-            result = result.replace(
+            result = data.replace(
               new RegExp(`Scenario: ${test}\\b`, 'g'),
               `\t@failed \n\tScenario: ${test}`
             );
