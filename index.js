@@ -49,6 +49,10 @@ const parseArguments = async () => {
   return await cypress.cli.parseRunArguments(cliArgs)
 }
 
+function escapeRegExp(string) {
+  return string.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
+}
+
 const parseFeatureFiles = async (tempfailedSpecs, failedSpecs) => {
 
   failedSpecs.forEach((file) => {
@@ -72,9 +76,10 @@ const parseFeatureFiles = async (tempfailedSpecs, failedSpecs) => {
               `\t@failed \n\tScenario Outline:`
             );
           } else if (data.includes(`Scenario: ${test}`)) {
-
+            const escapedString = escapeRegExp(`Scenario: ${test}`)
+            const regex = new RegExp(escapedString, 'g')
             result = data.replace(
-              new RegExp(`Scenario: ${test}\\b`, 'g'),
+              regex,
               `\t@failed \n\tScenario: ${test}`
             );
           }
